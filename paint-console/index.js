@@ -9,10 +9,15 @@ const error = console.error;
 console.log = function () {
 	const args = Array.prototype.slice.call(arguments);
 	let color = args.filter(arg => arg && typeof arg === 'object' && arg.hasOwnProperty('color'));
-	color = color.length ? (color[0].color || "").toUpperCase() : 'DEFAULT';
+
+	if(color.length) {
+		color = (color[0].color || "").toUpperCase();
+		args.pop();
+	} else {
+		color = 'DEFAULT';
+	}
 
 	stdout.write(COLORS[color]);
-	args.pop();
 	log.apply(this, args);
 	stdout.write(COLORS['DEFAULT']);
 };

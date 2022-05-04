@@ -5,7 +5,7 @@ const User = require("../model/user");
 exports.register = async (req, res) => {
   try {
     // Get user input
-    const { first_name, last_name, email, password } = req.body;
+    const { first_name, last_name, email, password, user_type } = req.body;
 
     // Validate user input
     if (!(email && password && first_name && last_name)) {
@@ -29,11 +29,12 @@ exports.register = async (req, res) => {
       first_name,
       last_name,
       email: email.toLowerCase(), // sanitize: convert email to lowercase
-      password: hasPassword
+      password: hasPassword,
+      user_type
     });
 
     // Create token
-    const token = jwt.sign({ user_id: user._id, email }, process.env.TOKEN_KEY, { expiresIn: "2h", });
+    const token = jwt.sign({ user_id: user._id, email, user_type: user.user_type }, process.env.TOKEN_KEY, { expiresIn: "2h", });
 
     // save user token
     user.token = token;
@@ -61,7 +62,7 @@ exports.login = async (req, res) => {
 
     if (user && (await bcrypt.compare(password, user.password))) {
       // Create token
-      const token = jwt.sign({ user_id: user._id, email }, process.env.TOKEN_KEY, { expiresIn: "2h", });
+      const token = jwt.sign({ user_id: user._id, email, user_type: user.user_type }, process.env.TOKEN_KEY, { expiresIn: "30m", });
 
       // save user token
       user.token = token;
@@ -73,6 +74,20 @@ exports.login = async (req, res) => {
   } catch (err) {
     console.log(err);
   }
+}
+
+exports.getUser = async (req, res) => {
+  const user = await User.findOne({ user_id: req.user.user_id });
+  return res.status(200).send(user);
+}
+
+exports.getAllUsers = async (req, res) => {
+  const users = await User.find({});
+  return res.status(200).send(users);
+}
+
+exports.updateUser = async (req, res) => {
+  return res.status(200).send({ user: req.user });
 }
 
 // Access auth users only
