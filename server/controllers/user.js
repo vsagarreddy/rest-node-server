@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../model/user");
+const Education = require("../model/education");
 
 exports.register = async (req, res) => {
   try {
@@ -38,7 +39,7 @@ exports.register = async (req, res) => {
 
     // save user token
     user.token = token;
-
+    delete user._id
     // return new user
     return res.status(201).json(user);
 
@@ -66,6 +67,7 @@ exports.login = async (req, res) => {
 
       // save user token
       user.token = token;
+      delete user._id
 
       // user
       return res.status(200).json(user);
@@ -77,12 +79,29 @@ exports.login = async (req, res) => {
 }
 
 exports.getUser = async (req, res) => {
-  const user = await User.findOne({ user_id: req.user.user_id });
+  const user = await User.findOne({ _id: req.user.user_id }, { 'password': 0, '__v': 0, '_id': 0 });
+  const educationsByUser = await Education.findOne({ email: user.email });
+  user.educations = educationsByUser['educations'] || [];
+
   return res.status(200).send(user);
 }
 
 exports.getAllUsers = async (req, res) => {
-  const users = await User.find({});
+  const users = await User.aggregate([{
+    $lookup: {
+      from: "educations",
+      localField: "email",
+      foreignField: "email",
+      as: "data"
+    }
+  }, { $unwind: '$data' }, {
+    $addFields: {
+      educations: "$data.educations"
+    }
+  }, {
+    $unset: ["data", "password", "__v", "_id"]
+  }
+  ]);
   return res.status(200).send(users);
 }
 
@@ -116,7 +135,7 @@ exports.userEvent = (req, res) => {
 };
 
 exports.adminEvent = (req, res) => {
-  let specialEvents = [
+  const specialEvents = [
     {
       "_id": "1",
       "name": "Auto Expo Special",

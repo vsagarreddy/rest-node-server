@@ -26,7 +26,7 @@ router.put('/user', verifyToken, userController.updateUser);
 // Education routes...
 router.get('/education', verifyToken, educationController.getEducation);
 router.post('/education', verifyToken, educationController.addEducation);
-router.put('/education', verifyToken, educationController.updateEducation);
+router.put('/education/:id', verifyToken, educationController.updateEducation);
 
 /* GET home page. */
 router.get('/', (req, res, next) => {

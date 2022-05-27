@@ -1,12 +1,13 @@
 require("../../paint-console");
 const mongoose = require("mongoose");
 
-const { MONGO_URI } = process.env;
+const { MONGO_URI, MONGO_URI_LOCALHOST } = process.env;
 
 exports.connect = () => {
   // Connecting to the database
+  console.log('########### MONGO_URI_LOCALHOST ########### : ', MONGO_URI_LOCALHOST, MONGO_URI);
   mongoose
-    .connect(MONGO_URI, {
+    .connect(MONGO_URI_LOCALHOST, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     })
